@@ -1,8 +1,8 @@
 'use client';
 
+import { login, type LoginState } from '@/actions/auth';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { login, type LoginState } from '../../actions/auth';
 
 const initialState: LoginState = {};
 

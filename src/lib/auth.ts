@@ -1,4 +1,4 @@
-import { authFetch } from './auth-fetch';
+import { authFetch } from '@/lib/auth-fetch';
 
 export type CurrentUser = {
   email: string;
