@@ -1,5 +1,11 @@
 import { authFetch } from '@/lib/auth-fetch';
 
+type ProjectImage = {
+  id: number;
+  image_url: string;
+  description: string;
+};
+
 export type Project = {
   id: number;
   title: string;
@@ -8,7 +14,9 @@ export type Project = {
   github_url?: string | null;
   demo_url?: string | null;
   tags: string[];
+  highlights: string[];
   published: boolean;
+  images: ProjectImage[];
 };
 
 export async function getProjects(): Promise<Project[]> {
