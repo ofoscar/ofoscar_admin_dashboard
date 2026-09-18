@@ -1,19 +1,18 @@
-import { redirect } from 'next/navigation';
-import { authFetch } from '../../lib/auth-fetch';
+import { getCurrentUser } from '@/lib/auth';
+import Link from 'next/link';
 
 export default async function AdminPage() {
-  const response = await authFetch('/auth/me');
-
-  if (response.status === 401) {
-    redirect('/login');
-  }
-
-  const user = await response.json();
-
+  const user = await getCurrentUser();
   return (
     <main>
-      <div>
-        <h1>Hello {user.email}</h1>
+      <div className='flex flex-col'>
+        <p>{user?.email}</p>
+        <Link
+          href='/admin/projects'
+          className='text-blue-500 hover:text-blue-800'
+        >
+          Projects
+        </Link>
       </div>
     </main>
   );
