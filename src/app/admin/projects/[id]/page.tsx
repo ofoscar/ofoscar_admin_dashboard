@@ -28,6 +28,14 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   return (
     <div className='flex flex-col gap-3'>
       <div className='flex flex-col gap-2'>
+        {project?.cover_image_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={project.cover_image_url}
+            alt={project.title}
+            className='h-48 w-auto border border-black/10 object-cover dark:border-white/15'
+          />
+        )}
         <h1>{project.title}</h1>
         <p>ID: {id}</p>
         <p>Description: {project.description}</p>
