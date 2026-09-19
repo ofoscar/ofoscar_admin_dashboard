@@ -34,6 +34,32 @@ export async function createProject(
           .filter(Boolean)
       : [];
 
+  const toImages = (value: FormDataEntryValue | null) => {
+    if (typeof value !== 'string' || !value.trim()) {
+      return [];
+    }
+
+    try {
+      const parsed = JSON.parse(value);
+
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+
+      return parsed
+        .filter(
+          (item): item is { image_url: string; description?: string } =>
+            typeof item?.image_url === 'string' && item.image_url.trim() !== '',
+        )
+        .map((item) => ({
+          image_url: item.image_url,
+          description: item.description?.trim() || null,
+        }));
+    } catch {
+      return [];
+    }
+  };
+
   const body = {
     title: title.trim(),
     description: description.trim(),
@@ -43,6 +69,7 @@ export async function createProject(
     published: formData.get('published') === 'on',
     tags: toList(formData.get('tags')),
     highlights: toList(formData.get('highlights')),
+    images: toImages(formData.get('images')),
   };
 
   const response = await authFetch('/projects', {
