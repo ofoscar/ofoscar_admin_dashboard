@@ -1,4 +1,5 @@
 import { authFetch } from '@/lib/auth-fetch';
+import type { Project } from '@/lib/projects';
 import { notFound } from 'next/navigation';
 import { deleteProject } from '../../../../actions/projects';
 
@@ -21,7 +22,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     throw new Error('Failed to fetch project');
   }
 
-  const project = await response.json();
+  const project: Project = await response.json();
 
   const deleteProjectWithId = deleteProject.bind(null, Number(id));
 
@@ -48,6 +49,29 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           ))}
         </div>
         <p>Published: {project.published ? 'Published' : 'Draft'}</p>
+
+        {project.images.length > 0 && (
+          <div className='flex flex-col gap-1'>
+            <p>Images:</p>
+            <div className='flex flex-wrap gap-3'>
+              {project.images.map((image) => (
+                <div key={image.id} className='flex flex-col gap-1'>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.image_url}
+                    alt={image.description || project.title}
+                    className='h-32 w-32 rounded-md border border-black/10 object-cover dark:border-white/15'
+                  />
+                  {image.description && (
+                    <p className='max-w-32 text-sm text-foreground/60'>
+                      {image.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       <form action={deleteProjectWithId}>
         <button type='submit' className='border p-1 rounded-xl cursor-pointer'>

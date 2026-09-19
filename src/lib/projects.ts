@@ -1,6 +1,6 @@
 import { authFetch } from '@/lib/auth-fetch';
 
-type ProjectImage = {
+export type ProjectImage = {
   id: number;
   image_url: string;
   description: string;
