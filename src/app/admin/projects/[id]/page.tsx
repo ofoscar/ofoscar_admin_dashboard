@@ -1,6 +1,7 @@
 import { authFetch } from '@/lib/auth-fetch';
 import type { Project } from '@/lib/projects';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { deleteProject } from '../../../../actions/projects';
 
 type ProjectPageProps = {
@@ -73,11 +74,19 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </div>
         )}
       </div>
-      <form action={deleteProjectWithId}>
-        <button type='submit' className='border p-1 rounded-xl cursor-pointer'>
-          Delete project
-        </button>
-      </form>
+      <div className='flex items-center gap-2'>
+        <Link
+          href={`/admin/projects/${id}/edit`}
+          className='border p-1 rounded-xl cursor-pointer'
+        >
+          Edit project
+        </Link>
+        <form action={deleteProjectWithId}>
+          <button type='submit' className='border p-1 rounded-xl cursor-pointer'>
+            Delete project
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
