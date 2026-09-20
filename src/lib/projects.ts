@@ -1,23 +1,8 @@
 import { authFetch } from '@/lib/auth-fetch';
+import type { Project } from '@/lib/project-types';
 
-export type ProjectImage = {
-  id: number;
-  image_url: string;
-  description: string;
-};
-
-export type Project = {
-  id: number;
-  title: string;
-  description: string;
-  cover_image_url?: string | null;
-  github_url?: string | null;
-  demo_url?: string | null;
-  tags: string[];
-  highlights: string[];
-  published: boolean;
-  images: ProjectImage[];
-};
+export type { Project, ProjectImage, ProjectSnapshot } from '@/lib/project-types';
+export { toProjectSnapshot } from '@/lib/project-types';
 
 export async function getProjects(): Promise<Project[]> {
   const response = await authFetch('/projects');

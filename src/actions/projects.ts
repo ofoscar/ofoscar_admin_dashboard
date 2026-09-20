@@ -3,10 +3,55 @@
 import { redirect } from 'next/navigation';
 
 import { authFetch } from '@/lib/auth-fetch';
+import type { ProjectSnapshot } from '@/lib/project-types';
 
 export type CreateProjectState = {
   error?: string;
 };
+
+export type UpdateProjectState = {
+  error?: string;
+};
+
+const toOptionalString = (value: FormDataEntryValue | null) =>
+  typeof value === 'string' && value.trim() ? value.trim() : null;
+
+const toList = (value: FormDataEntryValue | null) =>
+  typeof value === 'string'
+    ? value
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [];
+
+const toImages = (value: FormDataEntryValue | null) => {
+  if (typeof value !== 'string' || !value.trim()) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .filter(
+        (item): item is { image_url: string; description?: string } =>
+          typeof item?.image_url === 'string' && item.image_url.trim() !== '',
+      )
+      .map((item) => ({
+        image_url: item.image_url,
+        description: item.description?.trim() || null,
+      }));
+  } catch {
+    return [];
+  }
+};
+
+const isEqual = (a: unknown, b: unknown) =>
+  JSON.stringify(a) === JSON.stringify(b);
 
 export async function createProject(
   _prevState: CreateProjectState,
@@ -22,43 +67,6 @@ export async function createProject(
   if (typeof description !== 'string' || !description.trim()) {
     return { error: 'Description is required.' };
   }
-
-  const toOptionalString = (value: FormDataEntryValue | null) =>
-    typeof value === 'string' && value.trim() ? value.trim() : null;
-
-  const toList = (value: FormDataEntryValue | null) =>
-    typeof value === 'string'
-      ? value
-          .split(',')
-          .map((item) => item.trim())
-          .filter(Boolean)
-      : [];
-
-  const toImages = (value: FormDataEntryValue | null) => {
-    if (typeof value !== 'string' || !value.trim()) {
-      return [];
-    }
-
-    try {
-      const parsed = JSON.parse(value);
-
-      if (!Array.isArray(parsed)) {
-        return [];
-      }
-
-      return parsed
-        .filter(
-          (item): item is { image_url: string; description?: string } =>
-            typeof item?.image_url === 'string' && item.image_url.trim() !== '',
-        )
-        .map((item) => ({
-          image_url: item.image_url,
-          description: item.description?.trim() || null,
-        }));
-    } catch {
-      return [];
-    }
-  };
 
   const body = {
     title: title.trim(),
@@ -89,6 +97,69 @@ export async function createProject(
   }
 
   redirect('/admin/projects');
+}
+
+export async function updateProject(
+  projectId: number,
+  _prevState: UpdateProjectState,
+  formData: FormData,
+): Promise<UpdateProjectState> {
+  const title = formData.get('title');
+  const description = formData.get('description');
+
+  if (typeof title !== 'string' || !title.trim()) {
+    return { error: 'Title is required.' };
+  }
+
+  if (typeof description !== 'string' || !description.trim()) {
+    return { error: 'Description is required.' };
+  }
+
+  const originalRaw = formData.get('original');
+  const previous: ProjectSnapshot =
+    typeof originalRaw === 'string' ? JSON.parse(originalRaw) : null;
+
+  const next: ProjectSnapshot = {
+    title: title.trim(),
+    description: description.trim(),
+    github_url: toOptionalString(formData.get('github_url')),
+    demo_url: toOptionalString(formData.get('demo_url')),
+    cover_image_url: toOptionalString(formData.get('cover_image_url')),
+    published: formData.get('published') === 'on',
+    tags: toList(formData.get('tags')),
+    images: toImages(formData.get('images')),
+  };
+
+  const body = previous
+    ? Object.fromEntries(
+        Object.entries(next).filter(
+          ([key, value]) =>
+            !isEqual(value, previous[key as keyof ProjectSnapshot]),
+        ),
+      )
+    : next;
+
+  if (Object.keys(body).length === 0) {
+    redirect(`/admin/projects/${projectId}`);
+  }
+
+  const response = await authFetch(`/projects/${projectId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const responseBody = await response.text();
+
+    return {
+      error: `Failed to update project: ${response.status} ${responseBody}`,
+    };
+  }
+
+  redirect(`/admin/projects/${projectId}`);
 }
 
 export async function deleteProject(projectId: number) {

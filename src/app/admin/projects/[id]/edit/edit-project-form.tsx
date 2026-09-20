@@ -1,13 +1,17 @@
 'use client';
 
-import { createProject, type CreateProjectState } from '@/actions/projects';
+import { updateProject, type UpdateProjectState } from '@/actions/projects';
 import { CoverImageField } from '@/components/cover-image-field';
 import { inputClassName } from '@/components/form-styles';
-import { ProjectImagesField } from '@/components/project-images-field';
+import {
+  ProjectImagesField,
+  type ProjectImageItem,
+} from '@/components/project-images-field';
+import { toProjectSnapshot, type Project } from '@/lib/project-types';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 
-const initialState: CreateProjectState = {};
+const initialState: UpdateProjectState = {};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -18,16 +22,34 @@ function SubmitButton() {
       disabled={pending}
       className='w-full rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity disabled:opacity-50'
     >
-      {pending ? 'Creating...' : 'Create Project'}
+      {pending ? 'Saving...' : 'Save Changes'}
     </button>
   );
 }
 
-export function AddProjectForm() {
-  const [state, formAction] = useActionState(createProject, initialState);
+type EditProjectFormProps = {
+  project: Project;
+};
+
+export function EditProjectForm({ project }: EditProjectFormProps) {
+  const updateProjectWithId = updateProject.bind(null, project.id);
+  const [state, formAction] = useActionState(
+    updateProjectWithId,
+    initialState,
+  );
+
+  const originalSnapshot = JSON.stringify(toProjectSnapshot(project));
+
+  const initialImages: ProjectImageItem[] = project.images.map((image) => ({
+    id: String(image.id),
+    url: image.image_url,
+    description: image.description,
+  }));
 
   return (
     <form action={formAction} className='flex flex-col gap-4'>
+      <input type='hidden' name='original' value={originalSnapshot} />
+
       <div className='flex flex-col gap-1.5'>
         <label htmlFor='title' className='text-sm font-medium'>
           Title
@@ -37,6 +59,7 @@ export function AddProjectForm() {
           name='title'
           type='text'
           required
+          defaultValue={project.title}
           className={inputClassName}
         />
       </div>
@@ -50,6 +73,7 @@ export function AddProjectForm() {
           name='description'
           required
           rows={4}
+          defaultValue={project.description}
           className={inputClassName}
         />
       </div>
@@ -62,6 +86,7 @@ export function AddProjectForm() {
           id='github_url'
           name='github_url'
           type='url'
+          defaultValue={project.github_url ?? ''}
           className={inputClassName}
         />
       </div>
@@ -74,13 +99,14 @@ export function AddProjectForm() {
           id='demo_url'
           name='demo_url'
           type='url'
+          defaultValue={project.demo_url ?? ''}
           className={inputClassName}
         />
       </div>
 
-      <CoverImageField />
+      <CoverImageField initialUrl={project.cover_image_url ?? ''} />
 
-      <ProjectImagesField />
+      <ProjectImagesField initialImages={initialImages} />
 
       <div className='flex flex-col gap-1.5'>
         <label htmlFor='tags' className='text-sm font-medium'>
@@ -91,19 +117,7 @@ export function AddProjectForm() {
           name='tags'
           type='text'
           placeholder='nextjs, typescript, fastapi'
-          className={inputClassName}
-        />
-      </div>
-
-      <div className='flex flex-col gap-1.5'>
-        <label htmlFor='highlights' className='text-sm font-medium'>
-          Highlights (comma-separated)
-        </label>
-        <input
-          id='highlights'
-          name='highlights'
-          type='text'
-          placeholder='Built X, Improved Y'
+          defaultValue={project.tags.join(', ')}
           className={inputClassName}
         />
       </div>
@@ -113,6 +127,7 @@ export function AddProjectForm() {
           id='published'
           name='published'
           type='checkbox'
+          defaultChecked={project.published}
           className='h-4 w-4 rounded border border-black/10 dark:border-white/15'
         />
         <label htmlFor='published' className='text-sm font-medium'>
