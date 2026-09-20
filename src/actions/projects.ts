@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { authFetch } from '@/lib/auth-fetch';
+import type { Project } from '@/lib/projects';
 
 export type CreateProjectState = {
   error?: string;
@@ -59,6 +60,20 @@ export async function createProject(
       return [];
     }
   };
+export async function createProject(
+  _prevState: CreateProjectState,
+  formData: FormData,
+): Promise<CreateProjectState> {
+  const title = formData.get('title');
+  const description = formData.get('description');
+
+  if (typeof title !== 'string' || !title.trim()) {
+    return { error: 'Title is required.' };
+  }
+
+  if (typeof description !== 'string' || !description.trim()) {
+    return { error: 'Description is required.' };
+  }
 
   const body = {
     title: title.trim(),
