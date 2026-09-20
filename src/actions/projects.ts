@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 
 import { authFetch } from '@/lib/auth-fetch';
-import type { Project } from '@/lib/projects';
+import type { ProjectSnapshot } from '@/lib/project-types';
 
 export type CreateProjectState = {
   error?: string;
@@ -50,7 +50,8 @@ const toImages = (value: FormDataEntryValue | null) => {
   }
 };
 
-const isEqual = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+const isEqual = (a: unknown, b: unknown) =>
+  JSON.stringify(a) === JSON.stringify(b);
 
 export async function createProject(
   _prevState: CreateProjectState,
@@ -99,7 +100,7 @@ export async function createProject(
 }
 
 export async function updateProject(
-  project: Project,
+  projectId: number,
   _prevState: UpdateProjectState,
   formData: FormData,
 ): Promise<UpdateProjectState> {
@@ -114,7 +115,11 @@ export async function updateProject(
     return { error: 'Description is required.' };
   }
 
-  const next = {
+  const originalRaw = formData.get('original');
+  const previous: ProjectSnapshot =
+    typeof originalRaw === 'string' ? JSON.parse(originalRaw) : null;
+
+  const next: ProjectSnapshot = {
     title: title.trim(),
     description: description.trim(),
     github_url: toOptionalString(formData.get('github_url')),
@@ -125,31 +130,20 @@ export async function updateProject(
     images: toImages(formData.get('images')),
   };
 
-  const previous = {
-    title: project.title,
-    description: project.description,
-    github_url: project.github_url ?? null,
-    demo_url: project.demo_url ?? null,
-    cover_image_url: project.cover_image_url ?? null,
-    published: project.published,
-    tags: project.tags,
-    images: project.images.map((image) => ({
-      image_url: image.image_url,
-      description: image.description || null,
-    })),
-  };
-
-  const body = Object.fromEntries(
-    Object.entries(next).filter(
-      ([key, value]) => !isEqual(value, previous[key as keyof typeof previous]),
-    ),
-  );
+  const body = previous
+    ? Object.fromEntries(
+        Object.entries(next).filter(
+          ([key, value]) =>
+            !isEqual(value, previous[key as keyof ProjectSnapshot]),
+        ),
+      )
+    : next;
 
   if (Object.keys(body).length === 0) {
-    redirect(`/admin/projects/${project.id}`);
+    redirect(`/admin/projects/${projectId}`);
   }
 
-  const response = await authFetch(`/projects/${project.id}`, {
+  const response = await authFetch(`/projects/${projectId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -165,7 +159,7 @@ export async function updateProject(
     };
   }
 
-  redirect(`/admin/projects/${project.id}`);
+  redirect(`/admin/projects/${projectId}`);
 }
 
 export async function deleteProject(projectId: number) {

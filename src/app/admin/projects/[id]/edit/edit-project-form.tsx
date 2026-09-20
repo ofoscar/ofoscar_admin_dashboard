@@ -7,7 +7,7 @@ import {
   ProjectImagesField,
   type ProjectImageItem,
 } from '@/components/project-images-field';
-import type { Project } from '@/lib/projects';
+import { toProjectSnapshot, type Project } from '@/lib/project-types';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 
@@ -32,11 +32,13 @@ type EditProjectFormProps = {
 };
 
 export function EditProjectForm({ project }: EditProjectFormProps) {
-  const updateProjectWithId = updateProject.bind(null, project);
+  const updateProjectWithId = updateProject.bind(null, project.id);
   const [state, formAction] = useActionState(
     updateProjectWithId,
     initialState,
   );
+
+  const originalSnapshot = JSON.stringify(toProjectSnapshot(project));
 
   const initialImages: ProjectImageItem[] = project.images.map((image) => ({
     id: String(image.id),
@@ -46,6 +48,8 @@ export function EditProjectForm({ project }: EditProjectFormProps) {
 
   return (
     <form action={formAction} className='flex flex-col gap-4'>
+      <input type='hidden' name='original' value={originalSnapshot} />
+
       <div className='flex flex-col gap-1.5'>
         <label htmlFor='title' className='text-sm font-medium'>
           Title
