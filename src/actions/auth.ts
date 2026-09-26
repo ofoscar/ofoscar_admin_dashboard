@@ -7,6 +7,12 @@ export type LoginState = {
   error?: string;
 };
 
+export async function logout() {
+  const cookieStore = await cookies();
+  cookieStore.delete('access_token');
+  redirect('/login');
+}
+
 export async function login(
   _prevState: LoginState,
   formData: FormData,
