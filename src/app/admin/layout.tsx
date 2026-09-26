@@ -17,7 +17,7 @@ export default async function AdminLayout({
   return (
     <>
       <AppBar email={user.email} />
-      {children}
+      <main className='p-4'>{children}</main>
     </>
   );
 }
