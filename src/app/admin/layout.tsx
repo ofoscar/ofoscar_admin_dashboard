@@ -1,17 +1,23 @@
 import { redirect } from 'next/navigation';
 
-import { authFetch } from '@/lib/auth-fetch';
+import AppBar from '@/components/app-bar';
+import { getCurrentUser } from '@/lib/auth';
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const response = await authFetch('/auth/me');
+  const user = await getCurrentUser();
 
-  if (!response.ok) {
+  if (!user) {
     redirect('/login');
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <AppBar email={user.email} />
+      <main className='p-4'>{children}</main>
+    </>
+  );
 }
