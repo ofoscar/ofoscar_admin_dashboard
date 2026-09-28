@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { deleteProject } from '../../../../actions/projects';
 import DeleteProjectButton from '@/components/delete-project-button';
+import ImagePreview from '@/components/image-preview';
 
 type ProjectPageProps = {
   params: Promise<{
@@ -32,11 +33,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     <div className='flex flex-col gap-3'>
       <div className='flex flex-col gap-2'>
         {project?.cover_image_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <ImagePreview
             src={project.cover_image_url}
             alt={project.title}
-            className='h-48 w-auto border border-black/10 object-cover dark:border-white/15'
+            thumbnailClassName='h-48 w-auto border border-black/10 object-cover dark:border-white/15'
           />
         )}
         <h1>{project.title}</h1>
@@ -58,11 +58,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             <div className='flex flex-wrap gap-3'>
               {project.images.map((image) => (
                 <div key={image.id} className='flex flex-col gap-1'>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <ImagePreview
                     src={image.image_url}
                     alt={image.description || project.title}
-                    className='h-32 w-32 rounded-md border border-black/10 object-cover dark:border-white/15'
+                    thumbnailClassName='h-32 w-32 rounded-md border border-black/10 object-cover dark:border-white/15'
                   />
                   {image.description && (
                     <p className='max-w-32 text-sm text-foreground/60'>
