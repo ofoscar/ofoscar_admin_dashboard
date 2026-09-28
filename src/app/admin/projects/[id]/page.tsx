@@ -3,6 +3,7 @@ import type { Project } from '@/lib/projects';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { deleteProject } from '../../../../actions/projects';
+import DeleteProjectButton from '@/components/delete-project-button';
 
 type ProjectPageProps = {
   params: Promise<{
@@ -81,11 +82,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         >
           Edit project
         </Link>
-        <form action={deleteProjectWithId}>
-          <button type='submit' className='border p-1 rounded-xl cursor-pointer'>
-            Delete project
-          </button>
-        </form>
+        <DeleteProjectButton deleteAction={deleteProjectWithId} />
       </div>
     </div>
   );
